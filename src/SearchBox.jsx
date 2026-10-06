@@ -1,19 +1,21 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TextField, { textFieldClasses } from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import useDebounce from "./useDebounce";
 import './SearchBox.css';
 
 export default function SearchBox({ setWeatherInfo, setForecastInfo }) {
+    const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
     let [city, setCity] = useState("");
     let [error, setError] = useState(false)
-    //const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
-    const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+
+    const debouncedCity = useDebounce(city, 500);
     console.log("API KEY:", API_KEY);
 
     let API_URL ="https://api.openweathermap.org/data/2.5/weather";
     let FORECAST_API_URL ="https://api.openweathermap.org/data/2.5/forecast";
-
+    //let API_KEY="cf6b7c69cf5c57284a263f4c255409c9"
 
     let getWeatherInfo = async (city) => {
         try{
@@ -65,25 +67,28 @@ export default function SearchBox({ setWeatherInfo, setForecastInfo }) {
             setError(true);
     }
     }
+    useEffect(() => {
+
+    if (debouncedCity.trim() !== "") {
+        getWeatherInfo(debouncedCity);
+    }
+
+}, [debouncedCity]);
+
     let handleChange = (e) => {
         setCity(e.target.value);
         setError(false);
     }
-    let handleSubmit = (e) => {
-        e.preventDefault();
-        console.log(city);
-        setCity("");
-        getWeatherInfo(city);
-    }
-
-    return (<div className="SaerchBox" style={{textAlign: 'center'}}>
-        <form onSubmit={handleSubmit}>
-             <TextField id="city" label="Enter city name" 
-             variant="outlined"  required value={city} onChange={handleChange}/>
-             <br /><br />
-             <Button variant="contained" type="submit"> Search </Button>
-             {error && <p>No such place exists!</p>}
-        </form>
-    </div>);
-
+    
+    return (
+    <div className="SearchBox" style={{ textAlign: "center" }}>
+        <TextField
+            id="city"
+            label="Enter city name"
+            variant="outlined"
+            value={city}
+            onChange={handleChange}/>
+        {error && <p>No such place exists!</p>}
+    </div>
+);
 }
